@@ -45,7 +45,7 @@ const CameraManager = () => {
     setLoading(true);
     try {
       // ✅ Use the fetch function to add the camera
-      const data = { name, rtspUrl, pathName };
+      const data = { name, rtspUrl };
       const response = await fetch(`${API_BASE}/add-camera`, {
         method: "POST",
         headers: {
