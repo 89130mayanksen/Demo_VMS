@@ -8,7 +8,6 @@ const API_BASE =
 const CameraManager = () => {
   const [name, setName] = useState("");
   const [rtspUrl, setRtspUrl] = useState("");
-  const [pathName, setPathName] = useState("");
   const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -28,15 +27,12 @@ const CameraManager = () => {
     if (preset === "cam1") {
       setName("Test Cam 1");
       setRtspUrl("rtsp://192.168.0.100:8080/h264_ulaw.sdp");
-      setPathName("test-cam-1");
     } else if (preset === "cam2") {
       setName("Test Cam 2");
       setRtspUrl("rtsp://test-cam-2-url");
-      setPathName("test-cam-2");
     } else {
       setName("");
       setRtspUrl("");
-      setPathName("");
     }
   };
 
@@ -62,7 +58,6 @@ const CameraManager = () => {
       setCameras((prevCameras) => [...prevCameras, newCamera]);
       setName("");
       setRtspUrl("");
-      setPathName("");
     } catch (err) {
       console.error(err);
       alert("Failed to add camera");
@@ -116,14 +111,6 @@ const CameraManager = () => {
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
               required
             />
-            <input
-              type="text"
-              placeholder="Path Name"
-              value={pathName}
-              onChange={(e) => setPathName(e.target.value)}
-              className="p-2 rounded bg-gray-700 text-white border border-gray-600"
-              required
-            />
             <button
               type="submit"
               disabled={loading}
@@ -144,9 +131,6 @@ const CameraManager = () => {
               <div className="min-w-0 mr-2">
                 <h3 className="text-sm font-semibold truncate">{cam.name}</h3>
                 <p className="text-xs text-gray-400 truncate">{cam.rtspUrl}</p>
-                <p className="text-xs text-gray-400 truncate">
-                  Path: {cam.pathName}
-                </p>
               </div>
               <button
                 onClick={() => handleDelete(cam.id)}
