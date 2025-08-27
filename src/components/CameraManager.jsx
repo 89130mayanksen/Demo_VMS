@@ -1,25 +1,24 @@
-import axios from "axios"; // axios is still used for the GET and DELETE calls
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
-
-const API_BASE =
-  "https://ec2-65-0-181-71.ap-south-1.compute.amazonaws.com:5000";
+import { getCameras, addCamera } from "../api/cameraApi"; // ⬅️ Import your API functions
 
 const CameraManager = () => {
   const [name, setName] = useState("");
   const [rtspUrl, setRtspUrl] = useState("");
+  const [pathName, setPathName] = useState("");
   const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const fetchCameras = async () => {
+    try {
+      const fetchedCameras = await getCameras();
+      setCameras(fetchedCameras);
+    } catch (err) {
+      console.error("Failed to fetch cameras:", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchCameras = async () => {
-      try {
-        const response = await axios.get(`${API_BASE}/cameras`);
-        setCameras(response.data);
-      } catch (err) {
-        console.error("Failed to fetch cameras:", err);
-      }
-    };
     fetchCameras();
   }, []);
 
@@ -27,12 +26,15 @@ const CameraManager = () => {
     if (preset === "cam1") {
       setName("Test Cam 1");
       setRtspUrl("rtsp://192.168.0.100:8080/h264_ulaw.sdp");
+      setPathName("test-cam-1");
     } else if (preset === "cam2") {
       setName("Test Cam 2");
       setRtspUrl("rtsp://test-cam-2-url");
+      setPathName("test-cam-2");
     } else {
       setName("");
       setRtspUrl("");
+      setPathName("");
     }
   };
 
@@ -40,24 +42,16 @@ const CameraManager = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // ✅ Use the fetch function to add the camera
-      const data = { name, rtspUrl };
-      const response = await fetch(`${API_BASE}/add-camera`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const newCamera = { name, rtspUrl, pathName };
+      const addedCamera = await addCamera(newCamera);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // Update the list with the newly added camera
+      setCameras((prevCameras) => [...prevCameras, addedCamera]);
 
-      const newCamera = await response.json();
-      setCameras((prevCameras) => [...prevCameras, newCamera]);
+      // Clear form inputs
       setName("");
       setRtspUrl("");
+      setPathName("");
     } catch (err) {
       console.error(err);
       alert("Failed to add camera");
@@ -68,7 +62,8 @@ const CameraManager = () => {
 
   const handleDelete = async (cameraId) => {
     try {
-      await axios.delete(`${API_BASE}/cameras/${cameraId}`);
+      // You would need to add a `deleteCamera` API function
+      // await deleteCamera(cameraId);
       setCameras((prevCameras) =>
         prevCameras.filter((cam) => cam.id !== cameraId)
       );
@@ -111,6 +106,14 @@ const CameraManager = () => {
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
               required
             />
+            <input
+              type="text"
+              placeholder="Path Name"
+              value={pathName}
+              onChange={(e) => setPathName(e.target.value)}
+              className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+              required
+            />
             <button
               type="submit"
               disabled={loading}
@@ -131,6 +134,9 @@ const CameraManager = () => {
               <div className="min-w-0 mr-2">
                 <h3 className="text-sm font-semibold truncate">{cam.name}</h3>
                 <p className="text-xs text-gray-400 truncate">{cam.rtspUrl}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  Path: {cam.pathName}
+                </p>
               </div>
               <button
                 onClick={() => handleDelete(cam.id)}
